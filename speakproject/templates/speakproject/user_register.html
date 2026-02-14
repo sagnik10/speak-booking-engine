@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>User Registration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#eef6fa;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.card{
+    background:#fff;
+    padding:40px;
+    border-radius:28px;
+    box-shadow:0 30px 70px rgba(0,0,0,.15);
+    width:100%;
+    max-width:480px;
+}
+
+form{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+input,textarea{
+    padding:14px;
+    border-radius:14px;
+    border:1px solid #cfd8dc;
+}
+
+button{
+    padding:14px;
+    border-radius:30px;
+    border:none;
+    background:#26c6da;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.toast-container{
+    position:fixed;
+    top:80px;
+    right:24px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.warning{background:#ed6c02}
+.toast.info{background:#0277bd}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:70px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% if messages %}
+<script>
+const serverMessages=[
+{% for m in messages %}
+{text:"{{ m|escapejs }}",type:"{{ m.tags }}"},
+{% endfor %}
+]
+</script>
+{% endif %}
+
+<div class="card">
+<h2>User Registration</h2>
+
+<form method="post" enctype="multipart/form-data" id="registerForm">
+{% csrf_token %}
+
+<input name="username" id="username" placeholder="Username">
+<input name="email" type="email" id="email" placeholder="Email">
+<input name="password" type="password" id="password" placeholder="Password">
+<input name="name" id="name" placeholder="Full Name">
+<input name="phone" id="phone" placeholder="Phone">
+<textarea name="address" id="address" placeholder="Address"></textarea>
+
+<label style="font-size:12px;opacity:.7">Medical Document (PDF)</label>
+<input type="file" name="medical_document" id="medical_document" accept=".pdf">
+
+<button>Register</button>
+</form>
+
+<p style="text-align:center;font-size:12px;margin-top:20px">
+<a href="/login/user/">Already registered? Login</a>
+</p>
+</div>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement("div")
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById("toastContainer").appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation="toastOut .4s ease forwards"
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+if(typeof serverMessages!=="undefined"){
+    serverMessages.forEach(m=>showToast(m.text,m.type))
+}
+
+document.getElementById("registerForm").addEventListener("submit",e=>{
+    const fields=[
+        {id:"username",msg:"Please choose a username. This will uniquely identify your account on SPEAK."},
+        {id:"email",msg:"A valid email address is required so we can contact you and secure your account."},
+        {id:"password",msg:"Please create a password to protect your account and personal information."},
+        {id:"name",msg:"Enter your full name so we can personalize your experience."},
+        {id:"phone",msg:"Your phone number is required for account verification and support communication."}
+    ]
+
+    for(const f of fields){
+        const el=document.getElementById(f.id)
+        if(!el.value.trim()){
+            e.preventDefault()
+            showToast(f.msg,"warning")
+            return
+        }
+    }
+
+    if(document.getElementById("password").value.length < 6){
+        e.preventDefault()
+        showToast(
+            "Your password is too short. Please use at least 6 characters for better security.",
+            "warning"
+        )
+        return
+    }
+
+    if(document.getElementById("medical_document").files.length===0){
+        e.preventDefault()
+        showToast(
+            "Please upload the required medical document (PDF) to complete your registration.",
+            "warning"
+        )
+        return
+    }
+})
+</script>
+
+</body>
+</html>

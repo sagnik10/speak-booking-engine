@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% if messages %}
+<script>
+const serverMessages=[
+{% for m in messages %}
+{text:"{{ m|escapejs }}",type:"{{ m.tags }}"},
+{% endfor %}
+]
+</script>
+{% endif %}
+
+<form method="post" id="registerForm">
+    {% csrf_token %}
+
+    <input type="text" name="username" id="username" placeholder="Username">
+    <input type="email" name="email" id="email" placeholder="Email">
+    <input type="password" name="password" id="password" placeholder="Password">
+
+    <button class="btn">Sign Up</button>
+</form>
+
+<a class="link" href="/login/user/">Already have an account?</a>
+
+<style>
+.toast-container{
+    position:fixed;
+    top:24px;
+    right:24px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.warning{background:#ed6c02}
+.toast.info{background:#0277bd}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:18px;
+    }
+}
+</style>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement("div")
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById("toastContainer").appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation="toastOut .4s ease forwards"
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+if(typeof serverMessages!=="undefined"){
+    serverMessages.forEach(m=>showToast(m.text,m.type))
+}
+
+document.getElementById("registerForm").addEventListener("submit",e=>{
+    const username=document.getElementById("username").value.trim()
+    const email=document.getElementById("email").value.trim()
+    const password=document.getElementById("password").value.trim()
+
+    if(!username && !email && !password){
+        e.preventDefault()
+        showToast(
+            "Please fill in all required fields to create your account. Username, email, and password are mandatory.",
+            "warning"
+        )
+        return
+    }
+
+    if(!username){
+        e.preventDefault()
+        showToast(
+            "Username is required. Choose a unique username that will identify your account.",
+            "warning"
+        )
+        return
+    }
+
+    if(!email){
+        e.preventDefault()
+        showToast(
+            "Email address is missing. Enter a valid email so we can verify and communicate with you.",
+            "warning"
+        )
+        return
+    }
+
+    if(!password){
+        e.preventDefault()
+        showToast(
+            "Password field is empty. Please create a secure password to protect your account.",
+            "warning"
+        )
+        return
+    }
+
+    if(password.length < 6){
+        e.preventDefault()
+        showToast(
+            "Your password is too short. Please use at least 6 characters for better security.",
+            "warning"
+        )
+        return
+    }
+})
+</script>
+
+{% endblock %}

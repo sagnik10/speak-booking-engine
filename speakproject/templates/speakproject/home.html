@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPEAK | Welcome</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:linear-gradient(180deg,#eaf4f8,#d6ecf3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.card{
+    background:#fff;
+    padding:48px 42px;
+    border-radius:36px;
+    box-shadow:0 40px 90px rgba(0,0,0,.15);
+    width:100%;
+    max-width:420px;
+    text-align:center;
+    animation:enter .8s ease;
+}
+
+@keyframes enter{
+    from{opacity:0;transform:translateY(40px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+.logo{
+    width:90px;
+    margin-bottom:12px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:16px;
+    margin-top:32px;
+}
+
+a{
+    padding:16px;
+    border-radius:40px;
+    text-decoration:none;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.user-login{background:#1e88e5;color:#fff}
+.user-register{background:#26c6da;color:#fff}
+.emp-login{background:#ffb300;color:#333}
+.emp-register{background:#f4511e;color:#fff}
+
+@media(max-width:480px){
+    .grid{grid-template-columns:1fr}
+}
+
+.toast-container{
+    position:fixed;
+    top:80px;
+    right:24px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.warning{background:#ed6c02}
+.toast.info{background:#0277bd}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:70px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% if messages %}
+<script>
+const serverMessages=[
+{% for m in messages %}
+{text:"{{ m|escapejs }}",type:"{{ m.tags }}"},
+{% endfor %}
+]
+</script>
+{% endif %}
+
+<div class="card">
+<img src="{% static 'images/speak-logo.png' %}" class="logo">
+<h1>SPEAK</h1>
+<p>Secure • Verified • Role-based Access</p>
+
+<div class="grid">
+<a href="/login/user/" class="user-login" data-type="info" data-message="Login here if you already have a user account. This space is designed for personal support, privacy, and guided well-being.">User Login</a>
+
+<a href="/register/user/" class="user-register" data-type="success" data-message="Create a user account to access emotional support, counselors, and confidential resources at your own pace.">User Register</a>
+
+<a href="/login/employee/" class="emp-login" data-type="warning" data-message="This login is for approved counselors and staff only. Use your professional credentials to continue.">Employee Login</a>
+
+<a href="/register/employee/" class="emp-register" data-type="info" data-message="Apply here if you are a qualified professional looking to join SPEAK as a counselor. Verification is required.">Employee Register</a>
+</div>
+</div>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement('div')
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById('toastContainer').appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation='toastOut .4s ease forwards'
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+if(typeof serverMessages!=="undefined"){
+    serverMessages.forEach(m=>showToast(m.text,m.type))
+}
+
+document.querySelectorAll('.grid a').forEach(link=>{
+    link.addEventListener('click',e=>{
+        showToast(link.dataset.message,link.dataset.type)
+    })
+})
+</script>
+
+</body>
+</html>

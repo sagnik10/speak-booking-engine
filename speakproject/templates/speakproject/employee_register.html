@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPEAK | Employee Registration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:linear-gradient(180deg,#fdf3e6,#ffe0b2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.card{
+    width:100%;
+    max-width:560px;
+    background:#fff;
+    padding:40px;
+    border-radius:26px;
+    box-shadow:0 30px 70px rgba(0,0,0,.15);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:6px;
+}
+
+.sub{
+    text-align:center;
+    font-size:14px;
+    opacity:.7;
+    margin-bottom:28px;
+}
+
+form{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+input,textarea{
+    padding:14px;
+    border-radius:14px;
+    border:1px solid #d7ccc8;
+    font-size:14px;
+}
+
+textarea{min-height:90px}
+
+input:focus,textarea:focus{
+    outline:none;
+    border-color:#ff9800;
+}
+
+.section{
+    margin-top:14px;
+    font-size:13px;
+    font-weight:600;
+    opacity:.75;
+}
+
+label{
+    font-size:12px;
+    opacity:.65;
+}
+
+button{
+    margin-top:16px;
+    padding:14px;
+    border-radius:30px;
+    border:none;
+    background:linear-gradient(135deg,#ffb300,#fb8c00);
+    color:#222;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.footer{
+    text-align:center;
+    font-size:12px;
+    opacity:.6;
+    margin-top:22px;
+}
+
+.toast-container{
+    position:fixed;
+    top:24px;
+    right:24px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.warning{background:#ed6c02}
+.toast.info{background:#0277bd}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:18px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% if messages %}
+<script>
+const serverMessages=[
+{% for m in messages %}
+{text:"{{ m|escapejs }}",type:"{{ m.tags }}"},
+{% endfor %}
+]
+</script>
+{% endif %}
+
+<div class="card">
+<h1>Counselor Registration</h1>
+<div class="sub">Apply to support others through SPEAK</div>
+
+<form method="post" enctype="multipart/form-data" id="registerForm">
+{% csrf_token %}
+
+<input name="username" id="username" placeholder="Username">
+<input type="email" name="email" id="email" placeholder="Email">
+<input type="password" name="password" id="password" placeholder="Password">
+<input name="name" id="name" placeholder="Full Name">
+
+<textarea name="description" id="description" placeholder="Professional description, experience, and areas of expertise"></textarea>
+
+<textarea name="address" id="address" placeholder="Address"></textarea>
+<input type="date" name="dob" id="dob">
+
+<div class="section">Profile Image</div>
+<label>Profile Photo (JPG/JPEG only)</label>
+<input type="file" name="profile_image" id="profile_image" accept=".jpg,.jpeg">
+
+<div class="section">Verification Documents</div>
+<label>Government ID (PDF)</label>
+<input type="file" name="govt_document" id="govt_document" accept=".pdf">
+
+<label>Academic Certificate (PDF)</label>
+<input type="file" name="academic_document" id="academic_document" accept=".pdf">
+
+<div class="section">Bank & Payout Details</div>
+<input name="bank_name" id="bank_name" placeholder="Bank Name">
+<input name="account_holder_name" id="account_holder_name" placeholder="Account Holder Name">
+<input name="account_number" id="account_number" placeholder="Account Number">
+<input name="ifsc_code" id="ifsc_code" placeholder="IFSC Code">
+<input name="upi_id" id="upi_id" placeholder="UPI ID (optional)">
+
+<button type="submit">Submit Application</button>
+</form>
+
+<div class="footer">
+Already approved? <a href="/login/employee/">Login here</a>
+</div>
+</div>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement("div")
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById("toastContainer").appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation="toastOut .4s ease forwards"
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+if(typeof serverMessages!=="undefined"){
+    serverMessages.forEach(m=>showToast(m.text,m.type))
+}
+
+document.getElementById("registerForm").addEventListener("submit",e=>{
+    const required=[
+        {id:"username",msg:"Username is required."},
+        {id:"email",msg:"Email address is required."},
+        {id:"password",msg:"Password is required."},
+        {id:"name",msg:"Full name is required."},
+        {id:"description",msg:"Please add a professional description."},
+        {id:"dob",msg:"Date of birth is required."}
+    ]
+
+    for(const f of required){
+        const el=document.getElementById(f.id)
+        if(!el.value.trim()){
+            e.preventDefault()
+            showToast(f.msg,"warning")
+            return
+        }
+    }
+
+    const img=document.getElementById("profile_image")
+    if(img.files.length===0){
+        e.preventDefault()
+        showToast("Profile image is required and must be a JPG or JPEG file.","warning")
+        return
+    }
+
+    if(!img.files[0].name.toLowerCase().match(/\.(jpg|jpeg)$/)){
+        e.preventDefault()
+        showToast("Only JPG or JPEG images are allowed for profile photos.","warning")
+        return
+    }
+
+    if(document.getElementById("govt_document").files.length===0){
+        e.preventDefault()
+        showToast("Government ID document is required.","warning")
+        return
+    }
+
+    if(document.getElementById("academic_document").files.length===0){
+        e.preventDefault()
+        showToast("Academic certificate document is required.","warning")
+        return
+    }
+})
+</script>
+
+</body>
+</html>

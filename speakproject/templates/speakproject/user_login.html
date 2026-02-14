@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>User Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#eef6fa;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.card{
+    background:#fff;
+    padding:40px;
+    border-radius:28px;
+    box-shadow:0 30px 70px rgba(0,0,0,.15);
+    width:100%;
+    max-width:420px;
+}
+
+form{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+input{
+    padding:14px;
+    border-radius:14px;
+    border:1px solid #cfd8dc;
+}
+
+button{
+    padding:14px;
+    border-radius:30px;
+    border:none;
+    background:#1e88e5;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.toast-container{
+    position:fixed;
+    top:80px;
+    right:24px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.warning{background:#ed6c02}
+.toast.info{background:#0277bd}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:70px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% if messages %}
+<script>
+const serverMessages=[
+{% for m in messages %}
+{text:"{{ m|escapejs }}",type:"{{ m.tags }}"},
+{% endfor %}
+]
+</script>
+{% endif %}
+
+<div class="card">
+<h2>User Login</h2>
+
+<form method="post" id="loginForm">
+{% csrf_token %}
+<input name="username" id="username" placeholder="Username">
+<input type="password" name="password" id="password" placeholder="Password">
+
+<label style="font-size:12px;opacity:.7">
+    <input type="checkbox" name="remember"> Remember me
+</label>
+
+<button>Login</button>
+</form>
+
+<p style="text-align:center;font-size:12px;margin-top:20px">
+<a href="/register/user/">Create an account</a>
+</p>
+</div>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement("div")
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById("toastContainer").appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation="toastOut .4s ease forwards"
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+if(typeof serverMessages!=="undefined"){
+    serverMessages.forEach(m=>showToast(m.text,m.type))
+}
+
+document.getElementById("loginForm").addEventListener("submit",e=>{
+    const username=document.getElementById("username").value.trim()
+    const password=document.getElementById("password").value.trim()
+
+    if(!username && !password){
+        e.preventDefault()
+        showToast(
+            "Please enter both your username and password to continue. These details are required to log in securely.",
+            "warning"
+        )
+        return
+    }
+
+    if(!username){
+        e.preventDefault()
+        showToast(
+            "Your username is missing. Enter the username associated with your account.",
+            "warning"
+        )
+        return
+    }
+
+    if(!password){
+        e.preventDefault()
+        showToast(
+            "Your password field is empty. Please enter your password to proceed.",
+            "warning"
+        )
+        return
+    }
+})
+</script>
+
+</body>
+</html>

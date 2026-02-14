@@ -1,0 +1,343 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPEAK | Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:linear-gradient(180deg,#eef6fa,#dceff7);
+    color:#2c3e50;
+}
+
+header{
+    height:72px;
+    background:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:600;
+    letter-spacing:2px;
+}
+
+.brand img{width:42px}
+
+.logout{
+    padding:10px 22px;
+    border-radius:30px;
+    border:none;
+    background:#ff7043;
+    color:#fff;
+    font-weight:500;
+    cursor:pointer;
+}
+
+main{
+    max-width:1100px;
+    margin:auto;
+    padding:60px 40px;
+}
+
+.welcome{
+    font-size:28px;
+    font-weight:600;
+    margin-bottom:10px;
+}
+
+.welcome span{color:#1e88e5}
+
+.intro{
+    max-width:720px;
+    opacity:.75;
+    line-height:1.6;
+    margin-bottom:50px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:30px;
+    margin-bottom:70px;
+}
+
+.card{
+    background:#fff;
+    padding:32px;
+    border-radius:22px;
+    box-shadow:0 20px 45px rgba(0,0,0,.12);
+    transition:.35s ease;
+    animation:fadeUp .8s ease;
+    cursor:pointer;
+}
+
+@keyframes fadeUp{
+    from{opacity:0;transform:translateY(30px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+.card:hover{transform:translateY(-6px)}
+
+.card h3{margin-top:0;margin-bottom:10px}
+
+.card p{
+    font-size:14px;
+    opacity:.75;
+    line-height:1.5;
+}
+
+.section-title{
+    font-size:22px;
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+.counselors{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:30px;
+    margin-bottom:70px;
+}
+
+.counselor{
+    background:#fff;
+    padding:26px;
+    border-radius:22px;
+    box-shadow:0 18px 40px rgba(0,0,0,.12);
+}
+
+.counselor img{
+    width:100%;
+    height:180px;
+    object-fit:cover;
+    border-radius:16px;
+    margin-bottom:14px;
+}
+
+.counselor h4{margin:6px 0}
+
+.counselor p{
+    font-size:13px;
+    opacity:.75;
+    line-height:1.5;
+}
+
+.slot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:12px;
+}
+
+.slot a{
+    padding:8px 18px;
+    border-radius:20px;
+    background:#1e88e5;
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+}
+
+.bookings{
+    margin-bottom:60px;
+}
+
+.booking{
+    background:#fff;
+    padding:22px;
+    border-radius:20px;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);
+    margin-bottom:20px;
+}
+
+.small{font-size:13px;opacity:.7}
+
+footer{
+    text-align:center;
+    padding:30px;
+    font-size:12px;
+    opacity:.6;
+}
+
+.toast-container{
+    position:fixed;
+    top:88px;
+    right:24px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.info{background:#0277bd}
+.toast.warning{background:#ed6c02}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    header{padding:0 20px}
+    main{padding:40px 20px}
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:80px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<header>
+    <div class="brand">
+        <img src="{% static 'images/speak-logo.png' %}">
+        <span>SPEAK</span>
+    </div>
+    <button class="logout" onclick="location.href='/logout/'">Logout</button>
+</header>
+
+<main>
+    <div class="welcome">
+        Welcome, <span>{{ request.user.username }}</span>
+    </div>
+
+    <div class="intro">
+        This is your private space on Speak. You can explore support options, connect with counselors,
+        and manage your mental well-being at your own pace. Nothing here is rushed.
+        Everything is confidential.
+    </div>
+
+    <div class="cards">
+        <div class="card" data-message="This step helps you reflect on what kind of support feels right for you at this moment." data-type="info">
+            <h3>Understand Your Needs</h3>
+            <p>Explore the type of support you’re looking for.</p>
+        </div>
+
+        <div class="card" data-message="Browse counselors and their availability before booking." data-type="success">
+            <h3>Browse Counselors</h3>
+            <p>Discover counselors matched to your preferences.</p>
+        </div>
+
+        <div class="card" data-message="Book sessions securely when you feel ready." data-type="warning">
+            <h3>Book & Connect</h3>
+            <p>Schedule sessions privately and safely.</p>
+        </div>
+    </div>
+
+    <div class="section-title">Available Counselors</div>
+
+    <div class="counselors">
+        {% for e in employees %}
+        <div class="counselor">
+            {% if e.profile_image %}
+            <img src="{{ e.profile_image.url }}">
+            {% endif %}
+            <h4>{{ e.name }}</h4>
+            <p>{{ e.description }}</p>
+
+            {% for s in e.slots.all %}
+                {% if not s.is_booked %}
+                <div class="slot">
+                    <span class="small">{{ s.start_time }}</span>
+                    <a href="/checkout/{{ s.id }}/">Book ₹{{ price }}</a>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% empty %}
+        <p>No counselors available right now.</p>
+        {% endfor %}
+    </div>
+
+    <div class="section-title">Your Sessions</div>
+
+    <div class="bookings">
+        {% for b in bookings %}
+        <div class="booking">
+            <strong>{{ b.employee.name }}</strong>
+            <div class="small">{{ b.slot.start_time }}</div>
+            <div class="small">₹{{ b.amount }} • {{ b.duration_minutes }} minutes</div>
+        </div>
+        {% empty %}
+        <p>You haven’t booked any sessions yet.</p>
+        {% endfor %}
+    </div>
+
+</main>
+
+<footer>
+    © 2026 SPEAK • Safe • Confidential • Human-Centered
+</footer>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement('div')
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById('toastContainer').appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation='toastOut .4s ease forwards'
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+document.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click',()=>{
+        showToast(card.dataset.message,card.dataset.type)
+    })
+})
+</script>
+
+</body>
+</html>

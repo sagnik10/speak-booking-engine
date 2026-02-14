@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPEAK | Access</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+:root{
+    --glass-bg: rgba(255,255,255,0.08);
+    --glass-border: rgba(255,255,255,0.25);
+}
+
+*{box-sizing:border-box;font-family:Poppins,system-ui,sans-serif}
+
+body{
+    margin:0;
+    height:100vh;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+}
+
+.card{
+    width:400px;
+    padding:45px 35px;
+    border-radius:20px;
+    background:var(--glass-bg);
+    backdrop-filter:blur(20px);
+    border:1px solid var(--glass-border);
+    box-shadow:0 30px 70px rgba(0,0,0,.45);
+    text-align:center;
+    animation:fadeUp .9s ease forwards;
+}
+
+@keyframes fadeUp{
+    from{opacity:0;transform:translateY(40px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+.logo{
+    width:90px;
+    margin-bottom:10px;
+    animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+    50%{transform:translateY(-8px)}
+}
+
+.title{
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:2px;
+    margin-bottom:30px;
+}
+
+.btn-group{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.btn{
+    padding:14px;
+    border-radius:40px;
+    border:none;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transform:translateY(20px);
+    opacity:0;
+    animation:slideIn .6s ease forwards;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+
+.btn:nth-child(1){animation-delay:.2s}
+.btn:nth-child(2){animation-delay:.35s}
+.btn:nth-child(3){animation-delay:.5s}
+.btn:nth-child(4){animation-delay:.65s}
+
+@keyframes slideIn{
+    to{transform:translateY(0);opacity:1}
+}
+
+.btn::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(255,255,255,.35),transparent 40%);
+    opacity:0;
+    transition:.3s ease;
+}
+
+.btn:hover::after{opacity:1}
+
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 15px 30px rgba(0,0,0,.35);
+}
+
+.btn-user-login{background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff}
+.btn-user-register{background:linear-gradient(135deg,#36d1dc,#5b86e5);color:#fff}
+.btn-emp-login{background:linear-gradient(135deg,#f7971e,#ffd200);color:#222}
+.btn-emp-register{background:linear-gradient(135deg,#ff512f,#dd2476);color:#fff}
+
+.footer{
+    margin-top:28px;
+    font-size:12px;
+    opacity:.75;
+}
+
+.toast-container{
+    position:fixed;
+    top:24px;
+    right:24px;
+    z-index:9999;
+    pointer-events:none;
+}
+
+.toast{
+    min-width:260px;
+    max-width:360px;
+    background:#323232;
+    color:#fff;
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
+    animation:toastIn .4s ease forwards;
+    opacity:0;
+}
+
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.warning{background:#ed6c02}
+.toast.info{background:#0277bd}
+
+@keyframes toastIn{
+    from{transform:translateY(-6px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+@keyframes toastOut{
+    to{transform:translateY(-6px);opacity:0}
+}
+
+@media(max-width:600px){
+    .toast-container{
+        left:50%;
+        right:auto;
+        transform:translateX(-50%);
+        top:18px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% if messages %}
+<script>
+const serverMessages=[
+{% for m in messages %}
+{text:"{{ m|escapejs }}",type:"{{ m.tags }}"},
+{% endfor %}
+]
+</script>
+{% endif %}
+
+<div class="card">
+<img src="{% static 'images/speak-logo.png' %}" class="logo" alt="Speak Logo">
+
+<div class="title">SPEAK</div>
+
+<div class="btn-group">
+<button class="btn btn-user-login" data-type="info"
+        data-message="Choose this if you are accessing SPEAK for personal well-being support."
+        onclick="location.href='/login/user/'">
+<i class="fa-solid fa-user"></i> User Login
+</button>
+
+<button class="btn btn-user-register" data-type="success"
+        data-message="Register as a user to explore counselors and book sessions."
+        onclick="location.href='/register/user/'">
+<i class="fa-solid fa-user-plus"></i> User Registration
+</button>
+
+<button class="btn btn-emp-login" data-type="warning"
+        data-message="Restricted to approved counselors and staff."
+        onclick="location.href='/login/employee/'">
+<i class="fa-solid fa-briefcase"></i> Employee Login
+</button>
+
+<button class="btn btn-emp-register" data-type="info"
+        data-message="Apply here if you are a qualified professional."
+        onclick="location.href='/register/employee/'">
+<i class="fa-solid fa-file-signature"></i> Employee Registration
+</button>
+</div>
+
+<div class="footer">
+Secure • Verified • PDF-backed identity
+</div>
+</div>
+
+<script>
+const queue=[]
+let active=false
+
+function showToast(text,type){
+    queue.push({text,type})
+    if(!active)processQueue()
+}
+
+function processQueue(){
+    if(queue.length===0){active=false;return}
+    active=true
+    const {text,type}=queue.shift()
+    const toast=document.createElement("div")
+    toast.className=`toast ${type}`
+    toast.innerText=text
+    document.getElementById("toastContainer").appendChild(toast)
+    setTimeout(()=>{
+        toast.style.animation="toastOut .4s ease forwards"
+        setTimeout(()=>{
+            toast.remove()
+            processQueue()
+        },400)
+    },5000)
+}
+
+if(typeof serverMessages!=="undefined"){
+    serverMessages.forEach(m=>showToast(m.text,m.type))
+}
+
+document.querySelectorAll(".btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+        showToast(btn.dataset.message,btn.dataset.type)
+    })
+    btn.addEventListener("mousemove",e=>{
+        const r=btn.getBoundingClientRect()
+        btn.style.setProperty("--x",(e.clientX-r.left)+"px")
+        btn.style.setProperty("--y",(e.clientY-r.top)+"px")
+    })
+})
+</script>
+
+</body>
+</html>
