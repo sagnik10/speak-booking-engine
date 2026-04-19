@@ -1,5 +1,6 @@
 # README.md
 
+"""
 # Speak Booking Engine
 
 A Django-based booking engine for managing users, bookings, and administrative workflows.
@@ -22,30 +23,33 @@ Speak-main/
 │
 ├── manage.py
 ├── db.sqlite3
+├── requirements.txt
 │
 ├── Speak/
+│   │
 │   ├── __init__.py
 │   ├── settings.py
 │   ├── urls.py
 │   └── wsgi.py
 │
 ├── booking/
+│   │
 │   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
 │   ├── models.py
 │   ├── views.py
 │   ├── urls.py
+│   │
 │   ├── migrations/
+│   │
 │   └── templates/
 │
 ├── templates/
 │
 ├── static/
 │
-├── staticfiles/
-│
-└── requirements.txt
+└── staticfiles/
 
 ---
 
@@ -110,3 +114,5 @@ MIT License
 ## 🔥 Force Push Command
 
 cd C:\\Users\\nwp\\Downloads\\Speak-main-1.0.0\\Speak-main && git init && git remote remove origin 2>nul & git remote add origin https://github.com/sagnik10/speak-booking-engine.git && git add . && git commit -m "force update" && git branch -M main && git push -u origin main --force
+
+"""
